@@ -50,7 +50,7 @@ def folder_size(d: Path) -> int:
 
 
 def pack(name: str, src: Path, out: Path, dest: str, source: dict, level: int) -> dict:
-    archive = out / f"{name}.7z"
+    archive = (out / f"{name}.7z").resolve()
     archive.unlink(missing_ok=True)
     # files at the archive root; non-solid so the installer can extract file by file
     if shutil.which("7z"):
