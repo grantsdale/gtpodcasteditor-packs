@@ -1,0 +1,35 @@
+name: Publish packs
+
+# Run by hand when a pack should change (new model revision, new CUDA libraries).
+# Each run makes a new release; the installer build picks up the newest one.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag for this set of packs, e.g. packs-2"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build packs
+        run: |
+          pip install huggingface_hub
+          python build_packs.py --tag "${{ inputs.tag }}" --out out
+          ls -la out
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ inputs.tag }}" out/* --repo "${{ github.repository }}" \
+            --title "Packs ${{ inputs.tag }}" --latest \
+            --notes "Download packs for the Podcast Editor installer. See manifest.json for sources and SHA-256 checksums."
